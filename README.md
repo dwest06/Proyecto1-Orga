@@ -40,7 +40,7 @@ Primer proyecto de la materia Organizacion del Computador CI-3815 Ene-Mar 2018
 * se usa la funcion dir_ren, para cambiar el nombre al final del proceso.
 
 ### Funcion make (crear archivo con contenido) 
-### (Prueba Lista)
+#### (Prueba Lista)
 
 * abrir un archivo con el flag numero 1, se crea automaticamente si el archivo no existe
 
