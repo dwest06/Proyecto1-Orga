@@ -17,14 +17,14 @@ buffer: .space 1024
 	#guardamos el file descriptor
 	move $t0, $v0
 	
-	#guardamos el contenido del archivo en un registro
+	#guardamos el contenido del archivo en una etiqueta
 	li $v0, 14 #aqui se guarda el numero de caracteres leidos
 	move $a0, $t0
 	la $a1, buffer
 	li $a2, 256
 	syscall
 	
-	#guardamos el nuemro de caracteres leidos
+	#guardamos el numero de caracteres leidos
 	move $t1, $v0
 	
 	#ver que agarro
@@ -42,6 +42,11 @@ buffer: .space 1024
 	#guardamos el segundo file descriptor
 	move $t2, $v0
 	
+	#cerrar el archivo
+	li $v0, 16
+	move $a0, $t1
+	syscall
+	
 	#sobreescribimos el segundo archivo
 	li $v0, 15
 	move $a0,$t2
@@ -57,5 +62,3 @@ buffer: .space 1024
 	#terminar programa
 	li $v0, 10
 	syscall
-	
-	
