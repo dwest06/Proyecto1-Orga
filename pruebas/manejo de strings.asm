@@ -2,7 +2,7 @@
 
 nombre: .asciiz "hola lio wao si has cabiao"
 salto: .asciiz "\n"
-l: .ascii "l"
+l: .ascii "w"
 
 .text
 
@@ -18,11 +18,7 @@ main:
 	
 loop:
 	#cargamos el caracter
-	lb $a0, 0($t0)
-	
-	#imprime 
-	li $v0, 1
-	syscall
+	lb $t1, 0($t0)
 	
 	#sumamos 1 para obtener la sigiente posicion del string
 	addi $t0, $t0, 1
@@ -31,10 +27,11 @@ loop:
 	addi $s0, $s0, 1
 	
 	#verificamos si el caracter agarrado es el que cumple
-	bne $t1,$s1, loop
+	bnez $t1, loop
 	
 	subi $s0,$s0,1
-	#
+	
+	#imprime el numero de caracteres
 	li $v0,1
 	move $a0, $s0
 	syscall

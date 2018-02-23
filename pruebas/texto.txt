@@ -1,3 +1,0 @@
-Hola Como estas
-
-Esta es una prueba de lo que vamos a ver por mips.

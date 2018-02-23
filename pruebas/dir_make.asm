@@ -1,11 +1,25 @@
 .data
-nombre: .asciiz "Bad_Bunny.txt"
+nombre: .space 20
+buffer: .space 100
 
-buffer: .asciiz "Canciones de Bad Bunny:\n* Vuelve\n* Bailame(remix)\n* Chambea"
+salto: .asciiz "\n"
 
 .text
 
 	#pedimos el nombre y el contenido al usuario
+	li $v0, 8
+	la $a0, nombre
+	li $a1, 20
+	syscall
+	
+	la $a0, buffer
+	li $a1, 100
+	syscall
+	
+	#Arreglar la entrada
+	la $a0,nombre
+	jal arreglarInput
+	
 	
 	#Creamos el archivo
 	li $v0, 13
@@ -27,4 +41,16 @@ buffer: .asciiz "Canciones de Bad Bunny:\n* Vuelve\n* Bailame(remix)\n* Chambea"
 	#Finalizamos el programa
 	li $v0, 10
 	syscall
+
+##################
+#Entrada : 
+#	$a0: nombre del archivo
+##################
+arreglarInput:
+	move $t0,$a0
 	
+####################
+#Entrada : 
+#	$a0: string de caracteres a contar
+
+contarCaracteres

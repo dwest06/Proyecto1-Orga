@@ -1,7 +1,7 @@
 #Prueba implementacion del metodo cp
 .data
-nombre1: .asciiz "texto.txt"
-nombre2: .asciiz "texto2.txt"
+nombre1: .space 20
+nombre2: .space 20
 
 buffer: .space 1024
 
