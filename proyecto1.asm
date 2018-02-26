@@ -2,6 +2,14 @@
 #	Proyecto 1 | Organizacion del computador
 #	Implementacion de un directorio con su interprete de comandos usando una lista simplemtente enlazada
 ############################
+#
+#	Puntos:
+#		- El interprete no esta conectado con el directorio
+#		- Faltan las implementaciones de las funciones cif, dcif y perror
+#		- Los Metodos de la Estructura de datos "Lista" (Añadir, Buscar, Remover) funcionan correctamente
+#		- Los metodos implementados del Directorio funcionan sin embargo no estan complemtamente probados
+#
+##############################
 .data
 
 #Etiquetas para interactuar con el usuario
@@ -21,8 +29,23 @@ imprimirError: .asciiz "Ha ocurrido un error."
 init: .asciiz "init.txt"
 a: .asciiz "otro.txt"
 
+#Para el interpretador
+cp: .asciiz "cp"
+mv: .asciiz "mv"
+rm: .asciiz "rm"
+ls: .asciiz "ls"
+ct: .asciiz "ct"
+ci: .asciiz "ci"
+dc: .asciiz "dc"
+mk: .asciiz "mk"
+ar: .asciiz "ar"
+instruccion: .asciiz "dame una instrucción: "
+
 #Alineamos las sigueintes etiquetas
 .align 2
+
+#para el comando
+inst: .space 4
 
 #Atributos de la lista
 head: .space 4
@@ -30,6 +53,7 @@ head: .space 4
 
 #Etiquetas para guardar informacion obtenida del usuario
 nom: .space 20
+nom2: .space 20
 buff: .space 1024
 buff2: .space 1024
 .text
@@ -114,6 +138,10 @@ cargarInit:
 			
 		finLeerContenidoInit:
 		
+		#Guardamos en $a0 el nombre y en $a1 el contenido
+		la $a0, nom
+		la $a1, buff
+		
 		#guardamos el contenido de $s0 y $7 en la pila
 		subi $sp, $sp, 8
 		sw $s0, 0($sp)
@@ -147,26 +175,162 @@ cargarInit:
 #		$s7: contador
 ######################################			
 main:
-	#probamos buscar
-	
-	la $a0, a
-	
-	jal buscar
-	
-	move $t0, $a0
-	move $t1, $a1
-	
-	lw $t2, 4($t0)
-	
-	move $a0, $t2
-	li $v0, 4
+	li $v0, 4	
+	la $a0, instruccion
 	syscall
 	
-	#probamos ls
+	li $v0, 8	
+	la $a0, inst
+	la $a1, 3
+	syscall
 	
-	#jal dir_ls
+	j codificar
+print:  
 	
-	j fin
+	li $v0, 11	
+	li $a0, 10
+	syscall
+	move $a0,$v1
+        li $v0,1
+        syscall
+        li $v0, 11	
+	li $a0, 10
+	syscall
+        j main
+
+#en a0 se encuentra la instruccion dada	
+codificar: 	
+	lb $t0,($a0)
+	la $t1, cp
+	lb $t2,($t1)
+	#lb $t3,10 # /n que usare mucho mas abajo !!!! problema
+	#beq $t0,$t3 error
+	
+	#la $t1, cp
+	#lb $t2,($t1)
+	#lb $t3,2($t2) # /n que usare mucho mas abajo
+	beq $t0,$t2, sigue_cod
+	  
+	la $t1,mv
+	lb $t2,($t1)
+	beq $t0,$t2, sigue_cod 
+	
+	la $t1,rm
+	lb $t2,($t1)
+	beq $t0,$t2, sigue_cod 
+	
+	la $t1,ls
+	lb $t2,($t1)
+	beq $t0,$t2, sigue_cod
+	
+	la $t1,dc
+	lb $t2,($t1)
+	beq $t0,$t2, sigue_cod
+	
+	la $t1,ar
+	lb $t2,($t1)
+	beq $t0,$t2, sigue_cod
+	
+	j error
+	
+sigue_cod:
+
+	lb $t0,1($a0)
+	beqz $t0, error
+	
+	la $t1, cp
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_0
+
+	
+	la $t1, mv
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_1
+	
+	la $t1, rm
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_2
+	
+	la $t1, ls
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_3
+	
+	la $t1, ct
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_4
+	
+	la $t1, ci
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_5
+
+	la $t1, dc
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_6
+	
+	la $t1, mk
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_7
+	
+	la $t1, ar
+	lb $t2,1($t1)
+	beq $t0,$t2, cod_8
+	
+	j error
+	
+cod_0:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	move $v1, $zero
+	j print
+cod_1:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	addi $v1,$zero,1
+	j print
+cod_2:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	addi $v1,$zero,2
+	j print
+cod_3:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	addi $v1,$zero,3
+	j print			
+cod_4:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	addi $v1,$zero,4
+	j print	
+cod_5:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	addi $v1,$zero,5
+	j print	
+cod_6:
+
+	lb $t0,2($a0)
+	bnez $t0, error
+	addi $v1,$zero,6
+	j print	
+cod_7:
+
+	lb $t0,2($a0)
+	bnez $t0 error
+	addi $v1,$zero,7
+	j print	
+cod_8:
+
+	lb $t0,2($a0)
+	bnez $t0 error
+	addi $v1,$zero,8
+	j print	
 	
 #####################################
 #	Metodo para añadir un nuevo elemento a la lista
@@ -395,7 +559,57 @@ dir_make:
 	
 	jr $ra
 	
-
+dir_cp:
+	#en $a0 nombre1, $a1 nombre2
+	#guardamos el contenido en la pila
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	#Buscar el elemento
+	
+	jal buscar
+	
+	#retornamos los valores de la pila
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	#en $a0 tenemos la direccion del nodo que la guardamos en $t0
+	move $t0, $a0
+	
+	la $s0, buff
+	lw $s1,4($t0)
+	#guardamos el contenido
+	li $s7, 64	#usamos $s7 como contador
+	whileContCp: 
+		beqz $s7, salidaContCp	#comprobamos si se termino el string
+		
+		lw $s6, 0($s1)		#cargamos la palabras de la etiqueta nombre
+		sw $s6, 0($s0) 		#almacenamos la palabra en la direccion nombre
+		
+		addi $s1, $s1, 4	#sumamos 4 a $s1 y a $t3 y restamos 1 a $s7 
+		addi $s0, $s0, 4
+		subi $s7, $s7, 1
+		
+		j whileContCp		#llamamos de nuevo a la etiqueta whileNombre
+		
+	salidaContCp:
+	
+	#gardamos en $a0, el segundo nombre y en $a1 el buff
+	move $a0, $t1
+	la $a1, buff
+	#guardamos el contenido en la pila
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	#Eliminamos el elemento
+	
+	jal añadir
+	
+	#retornamos los valores de la pila
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	jr $ra
 	
 dir_rm:
 	#guardamos el contenido en $a0, el nombre ya deberia estar guardado en $a0
@@ -406,7 +620,76 @@ dir_rm:
 	
 	#Eliminamos el elemento
 	
-	jal remove
+	jal remover
+	
+	#retornamos los valores de la pila
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	jr $ra
+
+dir_ren:
+	#$a0 nombre1, $a1 nombre2
+	move $t0, $a0
+	move $t1, $a1
+	
+	#guardamos el contenido en la pila
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	#buscamos elemento
+	
+	jal buscar
+	
+	#retornamos los valores de la pila
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	move $t2, $a0	#Guardamos el nodo en $t0
+	la $s0, buff
+	move $s1,$t2
+	#guardamos el contenido
+	li $s7, 64	#usamos $s7 como contador
+	whileContRen: 
+		beqz $s7, salidaContRen	#comprobamos si se termino el string
+		
+		lw $s6, 0($s1)		#cargamos la palabras de la etiqueta nombre
+		sw $s6, 0($s0) 		#almacenamos la palabra en la direccion nombre
+		
+		addi $s1, $s1, 4	#sumamos 4 a $s1 y a $t3 y restamos 1 a $s7 
+		addi $s0, $s0, 4
+		subi $s7, $s7, 1
+		
+		j whileContRen		#llamamos de nuevo a la etiqueta whileNombre
+		
+	salidaContRen:
+	
+	
+	#guardamos el nombre del archivo en $a0 para llamar a remove
+	move $0, $t0
+	
+	#guardamos el contenido en la pila
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	#Eliminamos el elemento
+	
+	jal remover
+	
+	#retornamos los valores de la pila
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	#gardamos en $a0, el segundo nombre y en $a1 el buff
+	move $a0, $t1
+	la $a1, buff
+	#guardamos el contenido en la pila
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	#Eliminamos el elemento
+	
+	jal añadir
 	
 	#retornamos los valores de la pila
 	lw $ra, 0($sp)
@@ -414,11 +697,7 @@ dir_rm:
 	
 	
 	jr $ra
-
-dir_ren:
 	
-
-		
 dir_ls:
 	lw $s5, head
 	repetirLs:
