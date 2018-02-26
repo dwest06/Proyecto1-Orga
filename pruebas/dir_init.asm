@@ -59,8 +59,7 @@ SiguientesLineas:
 	
 	
 	#cargamos el primer byte del salto de linea
-	la $t0, salto
-	lb $t1, 0($t0) # \n
+	li $t1, 10
 	lb $t0, 0($s0) # a
 	la $t2, nom
 	#cargamos el primer byte

@@ -20,6 +20,7 @@ dirActual: .asciiz "direccion Actual: "
 imprimirError: .asciiz "Ha ocurrido un error."
 
 .align 2
+
 #Atributos de la lista
 head: .space 4
 #tamaño: .word
@@ -146,13 +147,55 @@ main2:
 	
 	jal buscar #Llamamos a la funcion buscar
 	
-	beqz $t2, error
+	blez $a0, error
+	
+	
+	move $t2, $a0	# guardo el nodo encontrado
+	move $t3, $a1	#guardo el nodo anteriro (util para eliminar)
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	li $v0, 1
+	move $a0, $t2
+	syscall
+	
+	li $v0, 11
+	li $a0, 10
+	syscall
+	
+	li $v0, 1
+	move $a0, $t3
+	syscall
+	li $v0, 11
+	li $a0, 10
+	syscall
 	
 	lw $t0, 4($t2) #Guardamos en $t0 lo retornado en $a0, la direccion de memoria del nodo
-	
 	li $v0, 4
 	move $a0, $t0
 	syscall
+	
+	lw $t0, 4($t3) #Guardamos en $t0 lo retornado en $a0, la direccion de memoria del nodo
+	li $v0, 4
+	move $a0, $t0
+	syscall
+	
+main3:
+	li $v0, 4	#imprimo nombre
+	la $a0, pedir
+	syscall	
+	
+	li $v0, 8	#leo nombre
+	la $a0, nom
+	li $a1, 20
+	syscall
+	
+	#Eliminamos el archivo pedido
+	jal remover
+	
+	jal dir_ls
 	
 	j finPrograma
 	
@@ -172,16 +215,11 @@ main2:
 #		$a0: apuntador al nodo si esta, -1 si no esta
 #		$a1: apuntador al nodo anterior del encontrado
 #####################################
-###
-### 	Me falta revisar est funcion e implementar el segundo return
-###	El segundo return es guardar en $a1 la direccion del nodo anterior a que estoy buscando
-###	esto con el fin de poder eliminar un nodo exitosamente y no tener que implementar un lista doblemente enlazada
-###
-#####################################
 
 buscar:
 	lw $t2, head	#Colocamos en $t0 la direccion de memoria de contenida en el head
 	la $t1, nom	#Colocamos en $t1 la direccion de memoria del nombre del archivo
+	lw $a1, head	#Iniciaizamos $a0 con el inicio del head
 	
 buscarInterno:
 	lw $t0, 0($t2)
@@ -200,17 +238,18 @@ buscarInterno:
 	
 		j comparar
 	si:	
-		
+		move $a0, $t2
 		jr $ra	#Retorna y $a0 contiene el apuntador al nodo encontrado
 	
 	no:
+		move $a1, $t2
 		lw $t0, 16($t2)		#Cargamos la direccion del siguiente nodo
 		move $t2, $t0
 		beqz $t2, retornaMenosUno #Verificamos si en $a0 no esta el fin de los nodos
 		j buscarInterno
 		
 	retornaMenosUno:
-		li $t2, -1 	#Cargamos en $a0, -1 el valor de retorno
+		li $a0, -1 	#Cargamos en $a0, -1 el valor de retorno
 		jr $ra		#retornamos -1 en $a0
 	
 #####################################
@@ -335,19 +374,126 @@ añadir:
 #####################################
 #	Funcion para eliminar un nodo de la estructura de datos
 #	Entrada:
-#		$a0: 
-#		$a1: 
+#		$a0: nombre del archivo
 #	Registros usados
 #		$t0: 
 #		$t1: 
 #		$s0: 
 #		$s1: 
 #	Return:
-#		$a0: 
+#		$a0: 1 si se eliminó, -1 si no
 #####################################
 remover:
+	move $t0, $a0	#guardamos en $t0 el nombre
+	
+	#guardamos el contenido de $s0 y $7 en la pila
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	#buscamos el elemento
+	
+	jal buscar
+	
+	#retornamos los valores de $s0 y $s7
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
+	blez $a0, error	#verificamos si el nodo existe en la lista
+	
+	lw $t0, 16($a0)	#Cargamos el siguiente nodo
+	
+	move $a0, $t0
+	li $v0, 1
+	syscall
+	
+	sw $t0, 16($a1)	#sobreescribimos el nodo actual por el siguiente
+	
+	jr $ra
+	
 
-
+dir_ls:
+	lw $s5, head
+	repetirLs:
+		beqz $s5, finLs
+		
+		#imprimimos el resultanto
+		li  $v0, 4 	#primero el nombre
+		la $a0, imprimirNombre
+		syscall
+		
+		lw $a0, 0($s5)	#cargamos la direccion 
+		li $v0, 4
+		syscall
+	
+		#imprimimos salto de linea
+		li $v0, 11
+		li $a0, 10
+		syscall
+		
+		#imprimimos el contenido del espacio creado
+		li  $v0, 4 
+		la $a0, imprimirContenido
+		syscall
+		
+		lw $a0, 4($s5)
+		li $v0, 4
+		syscall	
+		#imprimimos salto de linea
+		li $v0, 11
+		li $a0, 10
+		syscall
+	
+		#imprimimos el tamaño del espacio creado
+		li  $v0, 4 
+		la $a0, imprimirTamaño
+		syscall
+		
+		lw $a0, 8($s5)
+		li $v0, 1
+		syscall
+		
+		li  $v0, 4 
+		la $a0, imprimirTamaño2
+		syscall
+		
+		#imprimimos salto de linea
+		li $v0, 11
+		li $a0, 10
+		syscall
+		
+		#Imprimimos el cifrado
+		li $v0, 4
+		la $a0, imprimirCifrado
+		syscall
+		
+		li $v0, 1
+		lw $a0, 12($s5)
+		syscall
+		
+		li $v0, 11
+		li $a0, 10
+		syscall
+		
+		#imprimimos direccion del nodo siguiente
+		
+		li $v0, 4
+		la $a0, imprimirNodoSiguiente
+		syscall
+		
+		li $v0, 1
+		lw $a0, 16($s5)
+		syscall
+		
+		move $s5, $a0
+		
+		li $v0, 11
+		li $a0, 10
+		syscall
+		
+		j repetirLs
+	finLs:
+		jr $ra
+		
 
 error:
 	li $v0, 4
